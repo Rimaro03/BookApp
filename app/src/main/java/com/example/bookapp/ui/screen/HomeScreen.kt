@@ -41,10 +41,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.bookapp.models.Book
 import com.example.bookapp.R
-import com.example.bookapp.models.ImageLinks
-import com.example.bookapp.models.SaleInfo
-import com.example.bookapp.models.SearchInfo
-import com.example.bookapp.models.VolumeInfo
+import com.example.bookapp.data.local.MockData
 import com.example.bookapp.ui.theme.BookAppTheme
 
 @Composable
@@ -216,41 +213,8 @@ fun BookCard(
 @Composable
 fun BookCardPreview() {
     BookAppTheme {
-        val book = Book(
-            kind = "",
-            id = "",
-            etag = "",
-            selfLink = "",
-            volumeInfo = VolumeInfo(
-                title = "The Great Gatsby",
-                authors = listOf("F. Scott Fitzgerald"),
-                publisher = "",
-                publishedDate = "",
-                description = "A story of decadence and decadence",
-                industryIdentifiers = listOf(),
-                pageCount = 0,
-                categories = listOf(),
-                imageLinks = ImageLinks(
-                    smallThumbnail = "",
-                    thumbnail = "",
-                    small = "",
-                    medium = "http://www.google.com",
-                    large = "",
-                ),
-                language = "",
-                previewLink = "",
-                infoLink = "",
-            ),
-            saleInfo = SaleInfo(
-                listPrice = null,
-                buyLink = ""
-            ),
-            searchInfo = SearchInfo(
-                textSnippet = "A story of decadence and decadence"
-            )
-        )
         BookCard(
-            book = book,
+            book = MockData.BookMockData(),
             onBookClick = {}
         )
     }
