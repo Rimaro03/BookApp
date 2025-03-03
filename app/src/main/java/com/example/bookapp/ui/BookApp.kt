@@ -97,12 +97,7 @@ fun BottomBar(
 }
 
 fun openBrowser(context: Context, link: String) {
-    var url = link
-    if (!url.startsWith("http://") && !url.startsWith("https://")) {
-        url = "http://$url"
-    }
-
-    val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+    val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(link))
     context.startActivity(browserIntent)
 }
 
@@ -133,12 +128,11 @@ fun BookApp() {
         },
         bottomBar = {
             if(currentScreen == AppScreen.BookScreen) {
-
                 BottomBar(
                     buyAction = { book ->
                         openBrowser(
                             context = context,
-                            link = book?.saleInfo?.buyLink ?: ""
+                            link = book?.saleInfo?.buyLink ?: "https://www.google.com"
                         )
                     },
                     bookUiState = bookUiState
@@ -159,6 +153,7 @@ fun BookApp() {
                     }*/
                     onBookClick = { book ->
                         bookViewModel.getBook(book.id)
+                        bookViewModel.updateCurrentBook(book)
                         navController.navigate(AppScreen.BookScreen.name)
                     },
                     retryAction = bookViewModel::getVolumeList
