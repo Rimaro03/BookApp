@@ -5,11 +5,12 @@ import androidx.compose.runtime.Composable
 
 @Composable
 fun BookScreen (
-    bookUiState: BookDetailUiState
+    bookUiState: BookDetailUiState,
+    retryAction: () -> Unit
 ) {
     when (bookUiState) {
-        is BookDetailUiState.Loading -> Text(text = "Loading")
-        is BookDetailUiState.Error -> Text(text = "Error")
+        is BookDetailUiState.Loading -> LoadinScreen()
+        is BookDetailUiState.Error -> ErrorScreen(retryAction =  retryAction)
         is BookDetailUiState.Success -> Text(text = "Current book: ${bookUiState.book.volumeInfo.title}")
     }
 }

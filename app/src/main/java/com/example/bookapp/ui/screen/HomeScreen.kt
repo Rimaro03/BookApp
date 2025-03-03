@@ -1,48 +1,29 @@
 package com.example.bookapp.ui.screen
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SearchBar
-import androidx.compose.material3.SearchBarDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -70,14 +51,17 @@ import com.example.bookapp.ui.theme.BookAppTheme
 fun HomeScreen (
     volumeListUiState: VolumeListUiState,
     //search: (String) -> Unit,
+    onBookClick: (String) -> Unit,
+    retryAction: () -> Unit,
 )
 {
     when(volumeListUiState) {
-        is VolumeListUiState.Loading -> Text(text = "Loading")
-        is VolumeListUiState.Error -> Text(text = "Error")
+        is VolumeListUiState.Loading -> LoadinScreen()
+        is VolumeListUiState.Error -> ErrorScreen(retryAction = retryAction)
         is VolumeListUiState.Success -> {
             BookList(
                 books = volumeListUiState.books,
+                onBookClick = onBookClick
             )
         }
     }
@@ -89,6 +73,7 @@ fun BookList(
     books: Map<String, List<Book>>,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
+    onBookClick: (String) -> Unit,
 ) {
     val query = remember { mutableStateOf("") }
 
@@ -186,6 +171,7 @@ fun BookList(
                     ) { book ->
                         BookCard(
                             book = book,
+                            onBookClick = onBookClick
                         )
                     }
                 }
@@ -197,6 +183,7 @@ fun BookList(
 @Composable
 fun BookCard(
     book: Book,
+    onBookClick: (String) -> Unit,
 ) {
     Card (
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
@@ -204,7 +191,10 @@ fun BookCard(
         modifier = Modifier
             .padding(8.dp)
             .width(110.dp)
-            .aspectRatio(.7f)
+            .aspectRatio(.7f),
+        onClick = {
+            onBookClick(book.id)
+        }
     ) {
         AsyncImage(
             model = ImageRequest.Builder(context = LocalContext.current)
@@ -259,6 +249,9 @@ fun BookCardPreview() {
                 textSnippet = "A story of decadence and decadence"
             )
         )
-        BookCard(book = book)
+        BookCard(
+            book = book,
+            onBookClick = {}
+        )
     }
 }

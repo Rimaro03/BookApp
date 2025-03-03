@@ -1,19 +1,20 @@
 package com.example.bookapp.data
 
+import com.example.bookapp.BuildConfig
 import com.example.bookapp.models.Book
 import com.example.bookapp.models.BookListResponse
 import com.example.bookapp.network.BookApiService
 
 interface BookRepository {
-    suspend fun listVolumes(query: String, apiKey: String): BookListResponse
-    suspend fun getVolume(bookId: String, apiKey: String): Book
+    suspend fun listVolumes(query: String): BookListResponse
+    suspend fun getVolume(bookId: String): Book
 }
 
 class NetworkBookRepository(
     private val bookApiService: BookApiService
 ): BookRepository {
-    override suspend fun listVolumes(query: String, apiKey: String): BookListResponse =
-        bookApiService.listVolumes(query, apiKey)
-    override suspend fun getVolume(bookId: String, apiKey: String): Book =
-        bookApiService.getVolume(bookId, apiKey)
+    override suspend fun listVolumes(query: String): BookListResponse =
+        bookApiService.listVolumes(query, BuildConfig.API_KEY)
+    override suspend fun getVolume(bookId: String): Book =
+        bookApiService.getVolume(bookId, BuildConfig.API_KEY)
 }

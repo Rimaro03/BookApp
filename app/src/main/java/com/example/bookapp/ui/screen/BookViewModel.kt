@@ -15,6 +15,9 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import coil.network.HttpException
 import com.example.bookapp.BookApplication
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import okio.IOException
 
 sealed interface VolumeListUiState {
@@ -29,26 +32,34 @@ sealed interface BookDetailUiState {
     data class Success(val book: Book): BookDetailUiState
 }
 
+/*data class BookUiState(
+    val currentBookId: String
+)*/
+
 class BookViewModel (private val bookRepository: BookRepository): ViewModel() {
+    // Reason for mutableStateOf: compose watches the change of the value and recomposes the UI
     var volumeListUiState: VolumeListUiState by mutableStateOf(VolumeListUiState.Loading)
     var bookDetailUiState: BookDetailUiState by mutableStateOf(BookDetailUiState.Loading)
+    val defaultQueries = listOf("fiction", "history")
+
+    /*// Reason for MutableStateFlow: just need to update the value, no need to recompose the UI
+    var _bookUiState = MutableStateFlow(BookUiState(""))
+    val bookUiState: StateFlow<BookUiState> = _bookUiState*/
 
     init {
-        getVolumeList(listOf("fiction", "history"))
-        getBook("GWorEAAAQBAJ")
+        getVolumeList()
     }
 
-    fun getVolumeList(queries: List<String>) {
+    fun getVolumeList(queries: List<String> = defaultQueries) {
         viewModelScope.launch {
             volumeListUiState = VolumeListUiState.Loading
             volumeListUiState = try {
-                var books: Map<String, List<Book>> = mutableMapOf()
+                var books: MutableMap<String, List<Book>> = mutableMapOf()
                 for(query in queries) {
                     Log.d("BookViewModel", query)
                     var bookList: List<Book> = bookRepository.listVolumes(query).items
-                    books + Pair(query, bookList)
+                    books[query] = bookList
                 }
-                Log.d("BookViewModel", books.toString())
                 VolumeListUiState.Success(books)
             }
             catch (e: IOException) {
@@ -56,7 +67,6 @@ class BookViewModel (private val bookRepository: BookRepository): ViewModel() {
             }
             catch(e: HttpException)
             {
-                Log.e("BookApp", e.toString())
                 VolumeListUiState.Error
             }
         }
@@ -78,6 +88,14 @@ class BookViewModel (private val bookRepository: BookRepository): ViewModel() {
             }
         }
     }
+
+    /*fun updateCurrentBookId(bookId: String) {
+        _bookUiState.update {
+            currentState -> currentState.copy(
+                currentBookId = bookId
+            )
+        }
+    }*/
 
     companion object {
         val factory: ViewModelProvider.Factory = viewModelFactory {
