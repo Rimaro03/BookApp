@@ -8,8 +8,14 @@ import retrofit2.http.Query
 
 interface BookApiService {
     @GET("volumes")
-    suspend fun listVolumes(@Query("q") query: String): BookListResponse
+    suspend fun listVolumes(
+        @Query("q") query: String,
+        @Query("key") apiKey: String
+    ): BookListResponse
 
     @GET("volumes/{id}")
-    suspend fun getVolume(@Path("id") bookId: String): Book
+    suspend fun getVolume(
+        @Path("id") bookId: String,
+        @Query("key") apiKey: String
+    ): Book
 }

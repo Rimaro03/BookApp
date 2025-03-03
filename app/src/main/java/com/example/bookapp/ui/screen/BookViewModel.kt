@@ -1,5 +1,6 @@
 package com.example.bookapp.ui.screen
 
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -19,7 +20,7 @@ import okio.IOException
 sealed interface VolumeListUiState {
     data object Error: VolumeListUiState
     data object Loading: VolumeListUiState
-    data class Success(val books: List<Book>): VolumeListUiState
+    data class Success(val books: Map<String, List<Book>>): VolumeListUiState
 }
 
 sealed interface BookDetailUiState {
@@ -33,21 +34,29 @@ class BookViewModel (private val bookRepository: BookRepository): ViewModel() {
     var bookDetailUiState: BookDetailUiState by mutableStateOf(BookDetailUiState.Loading)
 
     init {
-        getVolumeList("lotr")
+        getVolumeList(listOf("fiction", "history"))
+        getBook("GWorEAAAQBAJ")
     }
 
-    fun getVolumeList(query: String) {
+    fun getVolumeList(queries: List<String>) {
         viewModelScope.launch {
             volumeListUiState = VolumeListUiState.Loading
             volumeListUiState = try {
-                var bookList: List<Book> = bookRepository.listVolumes(query).items
-                VolumeListUiState.Success(bookList)
+                var books: Map<String, List<Book>> = mutableMapOf()
+                for(query in queries) {
+                    Log.d("BookViewModel", query)
+                    var bookList: List<Book> = bookRepository.listVolumes(query).items
+                    books + Pair(query, bookList)
+                }
+                Log.d("BookViewModel", books.toString())
+                VolumeListUiState.Success(books)
             }
             catch (e: IOException) {
                 VolumeListUiState.Error
             }
             catch(e: HttpException)
             {
+                Log.e("BookApp", e.toString())
                 VolumeListUiState.Error
             }
         }

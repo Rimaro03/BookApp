@@ -20,25 +20,26 @@ data class Book (
     val etag: String,
     val selfLink: String,
     val volumeInfo: VolumeInfo,
-    val saleInfo: SaleInfo
+    val saleInfo: SaleInfo,
+    val searchInfo: SearchInfo? = null
 )
 
 @OptIn(ExperimentalSerializationApi::class)
 @JsonIgnoreUnknownKeys
 @Serializable
 data class VolumeInfo (
-    val title: String,
-    val authors: List<String>,
+    val title: String? = "",
+    val authors: List<String>? = listOf(),
     val publisher: String? = "",
-    val publishedDate: String,
+    val publishedDate: String? = "",
     val description: String? = "",
-    val industryIdentifiers: List<IndustryIdentifier>,
-    val pageCount: Int,
+    val industryIdentifiers: List<IndustryIdentifier>? = listOf(),
+    val pageCount: Int? = 0,
     val categories: List<String>? = null,
-    val imageLinks: ImageLinks,
-    val language: String,
-    val previewLink: String,
-    val infoLink: String,
+    val imageLinks: ImageLinks? = null,
+    val language: String? = "",
+    val previewLink: String? = "",
+    val infoLink: String? = "",
 )
 
 @Serializable
@@ -50,7 +51,11 @@ data class IndustryIdentifier (
 @Serializable
 data class ImageLinks (
     val smallThumbnail: String,
-    val thumbnail: String
+    val thumbnail: String,
+    val small: String? = null,
+    val medium: String? = null,
+    val large: String? = null,
+    val extraLarge: String? = null
 )
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -65,4 +70,9 @@ data class SaleInfo (
 data class ListPrice (
     val amount: Double,
     val currencyCode: String
+)
+
+@Serializable
+data class SearchInfo (
+    val textSnippet: String? = ""
 )
