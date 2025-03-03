@@ -32,19 +32,19 @@ sealed interface BookDetailUiState {
     data class Success(val book: Book): BookDetailUiState
 }
 
-/*data class BookUiState(
-    val currentBookId: String
-)*/
+data class BookUiState(
+    val currentBook: Book?
+)
 
 class BookViewModel (private val bookRepository: BookRepository): ViewModel() {
     // Reason for mutableStateOf: compose watches the change of the value and recomposes the UI
     var volumeListUiState: VolumeListUiState by mutableStateOf(VolumeListUiState.Loading)
     var bookDetailUiState: BookDetailUiState by mutableStateOf(BookDetailUiState.Loading)
-    val defaultQueries = listOf("fiction", "history")
+    private val defaultQueries = listOf("fiction", "history")
 
-    /*// Reason for MutableStateFlow: just need to update the value, no need to recompose the UI
-    var _bookUiState = MutableStateFlow(BookUiState(""))
-    val bookUiState: StateFlow<BookUiState> = _bookUiState*/
+    // Reason for MutableStateFlow: just need to update the value, no need to recompose the UI
+    var _bookUiState = MutableStateFlow(BookUiState(null))
+    val bookUiState: StateFlow<BookUiState> = _bookUiState
 
     init {
         getVolumeList()
@@ -89,13 +89,13 @@ class BookViewModel (private val bookRepository: BookRepository): ViewModel() {
         }
     }
 
-    /*fun updateCurrentBookId(bookId: String) {
+    fun updateCurrentBook(book: Book) {
         _bookUiState.update {
             currentState -> currentState.copy(
-                currentBookId = bookId
+                currentBook = book
             )
         }
-    }*/
+    }
 
     companion object {
         val factory: ViewModelProvider.Factory = viewModelFactory {

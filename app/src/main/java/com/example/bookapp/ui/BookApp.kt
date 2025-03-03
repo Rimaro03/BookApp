@@ -1,37 +1,38 @@
 package com.example.bookapp.ui
 
-import androidx.annotation.StringRes
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
-import com.example.bookapp.ui.screen.BookViewModel
-import com.example.bookapp.ui.screen.VolumeListUiState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.modifier.modifierLocalOf
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat.startActivity
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.bookapp.ui.screen.BookDetailUiState
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.example.bookapp.models.Book
 import com.example.bookapp.ui.screen.BookScreen
+import com.example.bookapp.ui.screen.BookUiState
+import com.example.bookapp.ui.screen.BookViewModel
 import com.example.bookapp.ui.screen.HomeScreen
+
 
 enum class AppScreen() {
     HomeScreen(),
@@ -77,18 +78,49 @@ fun BookAppBar(
     )
 }
 
+@Composable
+fun BottomBar(
+    modifier: Modifier = Modifier,
+    buyAction: (Book?) -> Unit = {},
+    bookUiState: BookUiState
+) {
+    BottomAppBar {
+        Button(
+            modifier = modifier.fillMaxWidth(),
+            onClick = {
+                buyAction(bookUiState.currentBook)
+            },
+        ) {
+            Text("Buy now")
+        }
+    }
+}
+
+fun openBrowser(context: Context, link: String) {
+    var url = link
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+        url = "http://$url"
+    }
+
+    val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+    context.startActivity(browserIntent)
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookApp() {
     val bookViewModel: BookViewModel = viewModel(factory = BookViewModel.factory)
     val volumeListUiState = bookViewModel.volumeListUiState
     val bookDetailUiState = bookViewModel.bookDetailUiState
+    val bookUiState = bookViewModel.bookUiState.collectAsState().value
 
     val navController = rememberNavController()
     val backStack by navController.currentBackStackEntryAsState()
     val currentScreen = AppScreen.valueOf(
         backStack?.destination?.route ?: AppScreen.HomeScreen.name
     )
+
+    val context = LocalContext.current
 
     Scaffold (
         modifier = Modifier,
@@ -98,6 +130,20 @@ fun BookApp() {
                 canNavigateBack = navController.previousBackStackEntry != null,
                 navigateBack = { navController.navigateUp() }
             )
+        },
+        bottomBar = {
+            if(currentScreen == AppScreen.BookScreen) {
+
+                BottomBar(
+                    buyAction = { book ->
+                        openBrowser(
+                            context = context,
+                            link = book?.saleInfo?.buyLink ?: ""
+                        )
+                    },
+                    bookUiState = bookUiState
+                )
+            }
         }
     ) { innerPadding ->
         NavHost(
@@ -111,8 +157,8 @@ fun BookApp() {
                     /*search = {query ->
                         bookViewModel.getVolumeList(query)
                     }*/
-                    onBookClick = { bookId ->
-                        bookViewModel.getBook(bookId)
+                    onBookClick = { book ->
+                        bookViewModel.getBook(book.id)
                         navController.navigate(AppScreen.BookScreen.name)
                     },
                     retryAction = bookViewModel::getVolumeList

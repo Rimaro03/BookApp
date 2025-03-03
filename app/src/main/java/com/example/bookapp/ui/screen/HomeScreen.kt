@@ -19,7 +19,6 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -48,7 +47,7 @@ import com.example.bookapp.ui.theme.BookAppTheme
 fun HomeScreen (
     volumeListUiState: VolumeListUiState,
     //search: (String) -> Unit,
-    onBookClick: (String) -> Unit,
+    onBookClick: (Book) -> Unit,
     retryAction: () -> Unit,
 )
 {
@@ -64,13 +63,12 @@ fun HomeScreen (
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookList(
     books: Map<String, List<Book>>,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
-    onBookClick: (String) -> Unit,
+    onBookClick: (Book) -> Unit,
 ) {
     val query = remember { mutableStateOf("") }
 
@@ -180,7 +178,7 @@ fun BookList(
 @Composable
 fun BookCard(
     book: Book,
-    onBookClick: (String) -> Unit,
+    onBookClick: (Book) -> Unit,
 ) {
     Card (
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
@@ -190,7 +188,7 @@ fun BookCard(
             .width(110.dp)
             .aspectRatio(.7f),
         onClick = {
-            onBookClick(book.id)
+            onBookClick(book)
         }
     ) {
         AsyncImage(
