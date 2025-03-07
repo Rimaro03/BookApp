@@ -29,12 +29,15 @@ data class Book (
 @Serializable
 data class VolumeInfo (
     val title: String? = "",
+    val subtitle: String? = "",
     val authors: List<String>? = listOf(),
     val publisher: String? = "",
     val publishedDate: String? = "",
     val description: String? = "",
     val industryIdentifiers: List<IndustryIdentifier>? = listOf(),
     val pageCount: Int? = 0,
+    val averageRating: Int? = 0,
+    val ratingsCount: Int? = 0,
     val categories: List<String>? = null,
     val imageLinks: ImageLinks? = null,
     val language: String? = "",

@@ -2,10 +2,12 @@ package com.example.bookapp.ui.screen
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -13,6 +15,9 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -62,12 +67,14 @@ fun BookDetail(
         // book image, title, authors, publisher
         Row (
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(20.dp)
         ){
             Card(
                 elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
                 shape = MaterialTheme.shapes.medium,
                 modifier = Modifier
+                    .width(120.dp)
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(context = LocalContext.current)
@@ -83,10 +90,18 @@ fun BookDetail(
                         .clip(MaterialTheme.shapes.medium)
                 )
             }
-            Column {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(3.dp)
+            ) {
                 Text(
                     text = book.volumeInfo.title ?: "",
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = book.volumeInfo.subtitle ?: "",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
                 )
                 Row {
                     if(book.volumeInfo.authors != null){
@@ -108,13 +123,42 @@ fun BookDetail(
         }
         // infos
         Row(
-            horizontalArrangement = Arrangement.SpaceAround
+            modifier = Modifier
+                .height(IntrinsicSize.Min)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
         )
         {
             //book.saleInfo.isEbook
             //book.volumeInfo.pageCount
             //book.volumeInfo.averageRating (+ratingsCount)
-            //book.volumeInfo.maturityRating
+
+            Column (
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Row {
+                    Text(
+                        text = book.volumeInfo.averageRating?.toString() ?: "0",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Icon(
+                        imageVector = Icons.Outlined.Star,
+                        contentDescription = "Ratings"
+                    )
+                }
+                Text(
+                    text = "${book.volumeInfo.ratingsCount?.toString() ?: "0"} reviews",
+                    style = MaterialTheme.typography.titleSmall,
+                )
+            }
+            // divider vertical
+            VerticalDivider(
+                modifier = Modifier
+                    .height(30.dp)
+            )
             Column (
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -129,7 +173,10 @@ fun BookDetail(
                 )
             }
             // divider vertical
-            VerticalDivider()
+            VerticalDivider(
+                modifier = Modifier
+                    .height(30.dp)
+            )
             Column (
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -140,7 +187,7 @@ fun BookDetail(
                     fontWeight = FontWeight.Bold,
                 )
                 Text(
-                    text = "Ebook",
+                    text = "Pages",
                     style = MaterialTheme.typography.titleSmall,
                 )
             }
