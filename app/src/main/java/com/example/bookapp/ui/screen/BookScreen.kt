@@ -17,9 +17,12 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedAssistChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -56,44 +59,92 @@ fun BookDetail(
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
-        // book image
-        Card (
-            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
-            shape = MaterialTheme.shapes.medium,
+        // book image, title, authors, publisher
+        Row (
             modifier = Modifier
-                .aspectRatio(.7f),
-        ) {
-            AsyncImage(
-                model = ImageRequest.Builder(context = LocalContext.current)
-                    .data(book.volumeInfo.imageLinks?.large?.replace("http", "https"))
-                    .crossfade(true)
-                    .build(),
-                contentDescription = book.volumeInfo.title,
-                error = painterResource(R.drawable.ic_broken_image),
-                placeholder = painterResource(R.drawable.loading_img),
-                contentScale = ContentScale.Crop,
+                .fillMaxWidth()
+        ){
+            Card(
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
+                shape = MaterialTheme.shapes.medium,
                 modifier = Modifier
-                    .fillMaxSize()
-                    .clip(MaterialTheme.shapes.medium)
-            )
-        }
-        // title and authors
-        Column {
-            Text(
-                text = book.volumeInfo.title ?: "",
-                style = MaterialTheme.typography.titleLarge,
-            )
-            Row {
-                if(book.volumeInfo.authors != null){
-                    for (author in book.volumeInfo.authors) {
-                        Text(
-                            text = if(author == book.volumeInfo.authors.last()) author else "$author, ",
-                            style = MaterialTheme.typography.titleSmall,
-                            modifier = Modifier
-                        )
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(context = LocalContext.current)
+                        .data(book.volumeInfo.imageLinks?.small?.replace("http", "https"))
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = book.volumeInfo.title,
+                    error = painterResource(R.drawable.ic_broken_image),
+                    placeholder = painterResource(R.drawable.loading_img),
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(MaterialTheme.shapes.medium)
+                )
+            }
+            Column {
+                Text(
+                    text = book.volumeInfo.title ?: "",
+                    style = MaterialTheme.typography.titleLarge,
+                )
+                Row {
+                    if(book.volumeInfo.authors != null){
+                        for (author in book.volumeInfo.authors) {
+                            Text(
+                                text = if(author == book.volumeInfo.authors.last()) author else "$author, ",
+                                style = MaterialTheme.typography.titleSmall,
+                                modifier = Modifier
+                            )
+                        }
                     }
                 }
+                Text(
+                    text = book.volumeInfo.publisher ?: "",
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier
+                )
             }
+        }
+        // infos
+        Row(
+            horizontalArrangement = Arrangement.SpaceAround
+        )
+        {
+            //book.saleInfo.isEbook
+            //book.volumeInfo.pageCount
+            //book.volumeInfo.averageRating (+ratingsCount)
+            //book.volumeInfo.maturityRating
+            Column (
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.book_icon),
+                    contentDescription = "Book Icon"
+                )
+                Text(
+                    text = "Ebook",
+                    style = MaterialTheme.typography.titleSmall,
+                )
+            }
+            // divider vertical
+            VerticalDivider()
+            Column (
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = book.volumeInfo.pageCount.toString(),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text(
+                    text = "Ebook",
+                    style = MaterialTheme.typography.titleSmall,
+                )
+            }
+
         }
 
         // categories
