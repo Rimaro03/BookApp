@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -48,14 +47,18 @@ import com.example.bookapp.models.Book
 @Composable
 fun BookScreen (
     bookUiState: BookDetailUiState,
-    retryAction: () -> Unit
+    retryAction: () -> Unit,
+    sampleButtonAction: (String) -> Unit,
+    buyButtonAction: (String) -> Unit
 ) {
     when (bookUiState) {
         is BookDetailUiState.Loading -> LoadinScreen()
         is BookDetailUiState.Error -> ErrorScreen(retryAction =  retryAction)
         is BookDetailUiState.Success -> BookDetail(
             book = bookUiState.book,
-            bookDetail = bookUiState.bookDetail
+            bookDetail = bookUiState.bookDetail,
+            sampleButtonAction = sampleButtonAction,
+            buyButtonAction = buyButtonAction
         )
     }
 }
@@ -64,7 +67,9 @@ fun BookScreen (
 fun BookDetail(
     book: Book,
     bookDetail: Book,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    sampleButtonAction: (String) -> Unit,
+    buyButtonAction: (String) -> Unit
 ) {
     var descriptionExpanded by remember { mutableStateOf(false) }
     val MAX_DESCRIPTION_LINES = 5
@@ -211,7 +216,9 @@ fun BookDetail(
             verticalAlignment = Alignment.CenterVertically
         ) {
             OutlinedButton (
-                onClick = { /*TODO*/ },
+                onClick = {
+                    sampleButtonAction(book.volumeInfo.previewLink ?: "https://www.google.com")
+                },
                 modifier = Modifier
                     .weight(1f)
             ) {
@@ -219,7 +226,9 @@ fun BookDetail(
             }
 
             Button (
-                onClick = { /*TODO*/ },
+                onClick = {
+                    buyButtonAction(book.saleInfo.buyLink ?: "https://www.google.com")
+                },
                 modifier = Modifier
                     .weight(1f)
             ) {

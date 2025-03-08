@@ -66,7 +66,8 @@ data class ImageLinks (
 @Serializable
 data class SaleInfo (
     val listPrice: ListPrice? = null,
-    val buyLink: String? = null
+    val buyLink: String? = null,
+    val isEbook: Boolean? = false
 )
 
 @Serializable

@@ -31,10 +31,18 @@ sealed interface BookDetailUiState {
     data object Loading: BookDetailUiState
     data class Success(val book: Book, val bookDetail: Book): BookDetailUiState
 }
+
+sealed interface BookSearchUiState {
+    data object Error: BookSearchUiState
+    data object Loading: BookSearchUiState
+    data class Success(val books: List<Book>): BookSearchUiState
+}
+
 class BookViewModel (private val bookRepository: BookRepository): ViewModel() {
     // Reason for mutableStateOf: compose watches the change of the value and recomposes the UI
     var volumeListUiState: VolumeListUiState by mutableStateOf(VolumeListUiState.Loading)
     var bookDetailUiState: BookDetailUiState by mutableStateOf(BookDetailUiState.Loading)
+    var bookSearchUiState: BookSearchUiState by mutableStateOf(BookSearchUiState.Loading)
     val defaultQueries = listOf("Fiction", "History", "Lotr")
 
     init {
@@ -79,6 +87,23 @@ class BookViewModel (private val bookRepository: BookRepository): ViewModel() {
             catch(e: HttpException)
             {
                 BookDetailUiState.Error
+            }
+        }
+    }
+
+    fun searchBooks(query: String) {
+        viewModelScope.launch {
+            bookSearchUiState = BookSearchUiState.Loading
+            bookSearchUiState = try {
+                var bookList: List<Book> = bookRepository.listVolumes(query).items
+                BookSearchUiState.Success(bookList)
+            }
+            catch (e: IOException) {
+                BookSearchUiState.Error
+            }
+            catch(e: HttpException)
+            {
+                BookSearchUiState.Error
             }
         }
     }

@@ -23,13 +23,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.bookapp.ui.screen.BookScreen
+import com.example.bookapp.ui.screen.BookSearchScreen
 import com.example.bookapp.ui.screen.BookViewModel
 import com.example.bookapp.ui.screen.HomeScreen
 
-
 enum class AppScreen() {
     HomeScreen(),
-    BookScreen()
+    BookScreen(),
+    BookSearch()
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,6 +84,7 @@ fun BookApp() {
     val bookViewModel: BookViewModel = viewModel(factory = BookViewModel.factory)
     val volumeListUiState = bookViewModel.volumeListUiState
     val bookDetailUiState = bookViewModel.bookDetailUiState
+    val bookSearchUiState = bookViewModel.bookSearchUiState
 
     val navController = rememberNavController()
     val backStack by navController.currentBackStackEntryAsState()
@@ -110,9 +112,10 @@ fun BookApp() {
             composable(AppScreen.HomeScreen.name) {
                 HomeScreen(
                     volumeListUiState = volumeListUiState,
-                    /*search = {query ->
-                        bookViewModel.getVolumeList(query)
-                    }*/
+                    search = { query ->
+                        bookViewModel.searchBooks(query)
+                        navController.navigate(AppScreen.BookSearch.name)
+                    },
                     onBookClick = { book ->
                         bookViewModel.getBook(book)
                         navController.navigate(AppScreen.BookScreen.name)
@@ -123,7 +126,23 @@ fun BookApp() {
             composable(AppScreen.BookScreen.name) {
                 BookScreen(
                     bookUiState = bookDetailUiState,
-                    retryAction = bookViewModel::getVolumeList
+                    retryAction = bookViewModel::getVolumeList,
+                    sampleButtonAction = { link ->
+                        openBrowser(context, link = link)
+                    },
+                    buyButtonAction = { link ->
+                        openBrowser(context, link)
+                    }
+                )
+            }
+            composable(AppScreen.BookSearch.name) {
+                BookSearchScreen(
+                    bookSearchUiState = bookSearchUiState,
+                    retryAction = bookViewModel::getVolumeList,
+                    onBookClick = { book ->
+                        bookViewModel.getBook(book)
+                        navController.navigate(AppScreen.BookScreen.name)
+                    }
                 )
             }
         }

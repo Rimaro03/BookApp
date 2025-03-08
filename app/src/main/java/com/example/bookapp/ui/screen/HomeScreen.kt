@@ -46,7 +46,7 @@ import com.example.bookapp.ui.theme.BookAppTheme
 @Composable
 fun HomeScreen (
     volumeListUiState: VolumeListUiState,
-    //search: (String) -> Unit,
+    search: (String) -> Unit,
     onBookClick: (Book) -> Unit,
     retryAction: () -> Unit,
 )
@@ -57,7 +57,8 @@ fun HomeScreen (
         is VolumeListUiState.Success -> {
             BookList(
                 books = volumeListUiState.books,
-                onBookClick = onBookClick
+                onBookClick = onBookClick,
+                search = search
             )
         }
     }
@@ -69,6 +70,7 @@ fun BookList(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     onBookClick: (Book) -> Unit,
+    search: (String) -> Unit
 ) {
     val query = remember { mutableStateOf("") }
 
@@ -114,7 +116,7 @@ fun BookList(
                 )
                 FilledIconButton (
                     onClick = {
-                        //if(query.value.isNotEmpty()) search(query.value)
+                        if(query.value.isNotEmpty()) search(query.value)
                     },
                     modifier = Modifier
                         .padding(
