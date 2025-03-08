@@ -1,6 +1,8 @@
 package com.example.bookapp.ui.screen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,20 +15,35 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,25 +58,106 @@ import coil.request.ImageRequest
 import com.example.bookapp.models.Book
 import com.example.bookapp.R
 import com.example.bookapp.data.local.MockData
+import com.example.bookapp.ui.AppScreen
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.isTraversalGroup
+import androidx.compose.ui.semantics.semantics
 import com.example.bookapp.ui.theme.BookAppTheme
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeScreenAppBar(
+    modifier: Modifier = Modifier,
+    currentScreens: AppScreen,
+    canNavigateBack: Boolean,
+    navigateBack: () -> Unit = {},
+){
+    val textFieldState = rememberTextFieldState()
+    var expanded by rememberSaveable { mutableStateOf(false) }
+
+    Box (
+        modifier = Modifier.fillMaxWidth().semantics { isTraversalGroup = true }
+    ) {
+        SearchBar(
+            modifier = Modifier.align(Alignment.TopCenter),
+            inputField = {
+                SearchBarDefaults.InputField(
+                    state = textFieldState,
+                    onSearch = { expanded = false },
+                    expanded = expanded,
+                    onExpandedChange = { expanded = it },
+                    placeholder = { Text("Hinted search text") },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                )
+            },
+            expanded = expanded,
+            onExpandedChange = { expanded = it }
+        ) {
+            Column(
+                Modifier.verticalScroll(rememberScrollState())
+            ) {
+                repeat(4) { idx ->
+                    val resultText = "Suggestion $idx"
+                    ListItem(
+                        headlineContent = { Text(resultText) },
+                        supportingContent = { Text("Additional info") },
+                        leadingContent = {
+                            Icon(
+                                Icons.Filled.Star,
+                                contentDescription = null
+                            )
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        modifier =
+                        Modifier
+                            .clickable {
+                                textFieldState.setTextAndPlaceCursorAtEnd(resultText)
+                                expanded = false
+                            }
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 4.dp)
+                    )
+                }
+            }
+        }
+    }
+}
 
 @Composable
 fun HomeScreen (
     volumeListUiState: VolumeListUiState,
+    currentScreen: AppScreen,
+    canNavigateBack: Boolean,
+    navigateBack: () -> Unit = {},
     search: (String) -> Unit,
     onBookClick: (Book) -> Unit,
     retryAction: () -> Unit,
 )
 {
-    when(volumeListUiState) {
-        is VolumeListUiState.Loading -> LoadinScreen()
-        is VolumeListUiState.Error -> ErrorScreen(retryAction = retryAction)
-        is VolumeListUiState.Success -> {
-            BookList(
-                books = volumeListUiState.books,
-                onBookClick = onBookClick,
-                search = search
+    Scaffold (
+        modifier = Modifier,
+        topBar = {
+            HomeScreenAppBar(
+                currentScreens = currentScreen,
+                canNavigateBack = canNavigateBack,
+                navigateBack = navigateBack,
+                modifier = Modifier.fillMaxWidth()
             )
+        }
+    ) { innerPadding ->
+        when (volumeListUiState) {
+            is VolumeListUiState.Loading -> LoadinScreen()
+            is VolumeListUiState.Error -> ErrorScreen(retryAction = retryAction)
+            is VolumeListUiState.Success -> {
+                BookList(
+                    books = volumeListUiState.books,
+                    onBookClick = onBookClick,
+                    search = search,
+                    modifier = Modifier.padding(innerPadding)
+                )
+            }
         }
     }
 }
@@ -68,7 +166,6 @@ fun HomeScreen (
 fun BookList(
     books: Map<String, List<Book>>,
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(0.dp),
     onBookClick: (Book) -> Unit,
     search: (String) -> Unit
 ) {
@@ -92,45 +189,6 @@ fun BookList(
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
             )
-            Row (
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ){
-                OutlinedTextField(
-                    value = query.value,
-                    onValueChange = {
-                        query.value = it
-                    },
-                    enabled = true,
-                    label = { Text("Search") },
-                    singleLine = true,
-                    modifier = Modifier
-                        .padding(
-                            top = 20.dp,
-                            bottom = 20.dp
-                        )
-                        .weight(1f),
-                    leadingIcon = {
-                        Icon(Icons.Filled.Search, contentDescription = "Search")
-                    },
-                )
-                FilledIconButton (
-                    onClick = {
-                        if(query.value.isNotEmpty()) search(query.value)
-                    },
-                    modifier = Modifier
-                        .padding(
-                            top = 6.dp
-                        )
-                        .size(55.dp),
-                    shape = MaterialTheme.shapes.small,
-                ){
-                    Icon(
-                        imageVector = Icons.Filled.Search,
-                        contentDescription = "Search"
-                    )
-                }
-            }
         }
 
         Column {
