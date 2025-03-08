@@ -29,22 +29,13 @@ sealed interface VolumeListUiState {
 sealed interface BookDetailUiState {
     data object Error: BookDetailUiState
     data object Loading: BookDetailUiState
-    data class Success(val book: Book): BookDetailUiState
+    data class Success(val book: Book, val bookDetail: Book): BookDetailUiState
 }
-
-data class BookUiState(
-    val currentBook: Book?
-)
-
 class BookViewModel (private val bookRepository: BookRepository): ViewModel() {
     // Reason for mutableStateOf: compose watches the change of the value and recomposes the UI
     var volumeListUiState: VolumeListUiState by mutableStateOf(VolumeListUiState.Loading)
     var bookDetailUiState: BookDetailUiState by mutableStateOf(BookDetailUiState.Loading)
-    private val defaultQueries = listOf("fiction", "history")
-
-    // Reason for MutableStateFlow: just need to update the value, no need to recompose the UI
-    var _bookUiState = MutableStateFlow(BookUiState(null))
-    val bookUiState: StateFlow<BookUiState> = _bookUiState
+    val defaultQueries = listOf("Fiction", "History", "Lotr")
 
     init {
         getVolumeList()
@@ -72,12 +63,15 @@ class BookViewModel (private val bookRepository: BookRepository): ViewModel() {
         }
     }
 
-    fun getBook(bookId: String) {
+    fun getBook(book: Book) {
         viewModelScope.launch {
             bookDetailUiState = BookDetailUiState.Loading
             bookDetailUiState = try {
-                var book: Book = bookRepository.getVolume(bookId)
-                BookDetailUiState.Success(book)
+                var bookDetail: Book = bookRepository.getVolume(book.id)
+                BookDetailUiState.Success(
+                    book = book,
+                    bookDetail = bookDetail
+                )
             }
             catch (e: IOException) {
                 BookDetailUiState.Error
@@ -86,14 +80,6 @@ class BookViewModel (private val bookRepository: BookRepository): ViewModel() {
             {
                 BookDetailUiState.Error
             }
-        }
-    }
-
-    fun updateCurrentBook(book: Book) {
-        _bookUiState.update {
-            currentState -> currentState.copy(
-                currentBook = book
-            )
         }
     }
 

@@ -1,5 +1,6 @@
 package com.example.bookapp.ui.screen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -9,24 +10,25 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedAssistChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,6 +40,9 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.bookapp.R
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.style.TextOverflow
 import com.example.bookapp.models.Book
 
 @Composable
@@ -48,21 +53,28 @@ fun BookScreen (
     when (bookUiState) {
         is BookDetailUiState.Loading -> LoadinScreen()
         is BookDetailUiState.Error -> ErrorScreen(retryAction =  retryAction)
-        is BookDetailUiState.Success -> BookDetail(book = bookUiState.book)
+        is BookDetailUiState.Success -> BookDetail(
+            book = bookUiState.book,
+            bookDetail = bookUiState.bookDetail
+        )
     }
 }
 
 @Composable
 fun BookDetail(
     book: Book,
+    bookDetail: Book,
     modifier: Modifier = Modifier
 ) {
+    var descriptionExpanded by remember { mutableStateOf(false) }
+    val MAX_DESCRIPTION_LINES = 5
+
     Column (
         modifier = modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
             .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp),
+        verticalArrangement = Arrangement.spacedBy(25.dp),
     ) {
         // book image, title, authors, publisher
         Row (
@@ -78,7 +90,7 @@ fun BookDetail(
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(context = LocalContext.current)
-                        .data(book.volumeInfo.imageLinks?.small?.replace("http", "https"))
+                        .data(bookDetail.volumeInfo.imageLinks?.small?.replace("http", "https"))
                         .crossfade(true)
                         .build(),
                     contentDescription = book.volumeInfo.title,
@@ -121,6 +133,7 @@ fun BookDetail(
                 )
             }
         }
+
         // infos
         Row(
             modifier = Modifier
@@ -130,10 +143,6 @@ fun BookDetail(
             verticalAlignment = Alignment.CenterVertically
         )
         {
-            //book.saleInfo.isEbook
-            //book.volumeInfo.pageCount
-            //book.volumeInfo.averageRating (+ratingsCount)
-
             Column (
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -194,26 +203,27 @@ fun BookDetail(
 
         }
 
-        // categories
-        if(book.volumeInfo.categories != null){
-            LazyRow {
-                items(
-                    items = book.volumeInfo.categories,
-                    key = { category -> category }
-                ) { category ->
-                    ElevatedAssistChip(
-                        onClick = {  },
-                        label = {
-                            Text(
-                               text = category,
-                                modifier = modifier.padding(10.dp)
-                            )},
-                        modifier = Modifier
-                            .padding(
-                                end = 8.dp
-                            )
-                    )
-                }
+        // sample and buy
+        Row (
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            OutlinedButton (
+                onClick = { /*TODO*/ },
+                modifier = Modifier
+                    .weight(1f)
+            ) {
+                Text("Sample")
+            }
+
+            Button (
+                onClick = { /*TODO*/ },
+                modifier = Modifier
+                    .weight(1f)
+            ) {
+                Text("Buy ${bookDetail.saleInfo.listPrice?.currencyCode} ${bookDetail.saleInfo.listPrice?.amount}")
             }
         }
 
@@ -223,15 +233,43 @@ fun BookDetail(
                 verticalArrangement = Arrangement.spacedBy(5.dp)
             ) {
                 Text(
-                    text = "Description",
-                    style = MaterialTheme.typography.titleLarge,
+                    text = "About this book",
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                 )
                 Text(
                     text = book.volumeInfo.description,
+                    maxLines = if (descriptionExpanded) Int.MAX_VALUE else MAX_DESCRIPTION_LINES,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = modifier
+                        .clickable {
+                            descriptionExpanded = !descriptionExpanded
+                        }
                 )
+            }
+        }
+
+        // categories
+        if(bookDetail.volumeInfo.categories != null){
+            LazyRow {
+                items(
+                    items = bookDetail.volumeInfo.categories,
+                    key = { category -> category }
+                ) { category ->
+                    AssistChip (
+                        onClick = {  },
+                        label = {
+                            Text(
+                               text = category,
+                                modifier = modifier.padding(5.dp)
+                            )},
+                        modifier = Modifier
+                            .padding(
+                                end = 8.dp
+                            )
+                    )
+                }
             }
         }
     }
 }
-
