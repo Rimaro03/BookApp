@@ -74,6 +74,11 @@ dependencies {
     implementation(libs.coil.kt.coil.compose)
     implementation(libs.kotlinx.serialization.json)
 
+    implementation(libs.androidx.material3.v120)
+    implementation(libs.ui)
+    implementation(libs.ui.tooling.preview)
+    implementation(libs.androidx.runtime)
+
     //navigation
     implementation(libs.androidx.navigation.compose)
 

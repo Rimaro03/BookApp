@@ -53,10 +53,7 @@ fun BookApp() {
         composable(AppScreen.HomeScreen.name) {
             HomeScreen(
                 volumeListUiState = volumeListUiState,
-                currentScreen = currentScreen,
-                canNavigateBack = false,
-                navigateBack = { /*TODO*/ },
-                search = { query ->
+                onSearch = { query ->
                     bookViewModel.searchBooks(query)
                     navController.navigate(AppScreen.BookSearch.name)
                 },
@@ -82,6 +79,12 @@ fun BookApp() {
         composable(AppScreen.BookSearch.name) {
             BookSearchScreen(
                 bookSearchUiState = bookSearchUiState,
+                canNavigateBack = false,
+                navigateBack = { /*TODO*/ },
+                onSearch = { query ->
+                    bookViewModel.searchBooks(query)
+                    navController.navigate(AppScreen.BookSearch.name)
+                },
                 retryAction = bookViewModel::getVolumeList,
                 onBookClick = { book ->
                     bookViewModel.getBook(book)

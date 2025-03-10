@@ -4,21 +4,21 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,32 +31,31 @@ import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.isTraversalGroup
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.example.bookapp.models.Book
 import com.example.bookapp.R
-import com.example.bookapp.data.local.MockData
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.isTraversalGroup
-import androidx.compose.ui.semantics.semantics
-import com.example.bookapp.ui.theme.BookAppTheme
+import com.example.bookapp.models.Book
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreenAppBar(
+fun BookSearchScreenAppBar(
+    canNavigateBack: Boolean,
+    navigateBack: () -> Unit = {},
     onSearch: (String) -> Unit,
     modifier: Modifier = Modifier
 ){
@@ -68,8 +67,16 @@ fun HomeScreenAppBar(
             .fillMaxWidth()
             .semantics { isTraversalGroup = true }
     ) {
+        if (canNavigateBack) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = null,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .clickable { navigateBack() }
+            )
+        }
         SearchBar(
-            modifier = Modifier.align(Alignment.TopCenter),
             inputField = {
                 SearchBarDefaults.InputField(
                     state = textFieldState,
@@ -114,29 +121,55 @@ fun HomeScreenAppBar(
 }
 
 @Composable
-fun HomeScreen (
-    volumeListUiState: VolumeListUiState,
+fun BookSearchScreen(
+    bookSearchUiState: BookSearchUiState,
+    canNavigateBack: Boolean,
+    navigateBack: () -> Unit = {},
     onSearch: (String) -> Unit,
-    onBookClick: (Book) -> Unit,
     retryAction: () -> Unit,
+    onBookClick: (Book) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Scaffold (
         modifier = Modifier,
         topBar = {
-            HomeScreenAppBar(
+            BookSearchScreenAppBar(
+                canNavigateBack = canNavigateBack,
+                navigateBack = navigateBack,
                 onSearch = onSearch,
                 modifier = Modifier.fillMaxWidth()
             )
         }
     ) { innerPadding ->
-        when (volumeListUiState) {
-            is VolumeListUiState.Loading -> LoadinScreen()
-            is VolumeListUiState.Error -> ErrorScreen(retryAction = retryAction)
-            is VolumeListUiState.Success -> {
-                BookList(
-                    books = volumeListUiState.books,
-                    onBookClick = onBookClick,
-                    modifier = Modifier.padding(innerPadding)
+        when(bookSearchUiState) {
+            is BookSearchUiState.Loading -> LoadinScreen()
+            is BookSearchUiState.Error -> ErrorScreen(retryAction)
+            is BookSearchUiState.Success -> BookGrid(
+                bookList = bookSearchUiState.books,
+                onBookClick = onBookClick,
+                modifier = Modifier.padding(innerPadding)
+            )
+        }
+    }
+}
+
+@Composable
+fun BookGrid(
+    bookList: List<Book>,
+    onBookClick: (Book) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    LazyColumn (
+        modifier = modifier
+            .padding(20.dp)
+            .fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(25.dp),
+    ) {
+        for (book in bookList) {
+            item {
+                BookSearchCard(
+                    book = book,
+                    onBookClick = onBookClick
                 )
             }
         }
@@ -144,114 +177,66 @@ fun HomeScreen (
 }
 
 @Composable
-fun BookList(
-    books: Map<String, List<Book>>,
+fun BookSearchCard (
+    book: Book,
     modifier: Modifier = Modifier,
-    onBookClick: (Book) -> Unit,
+    onBookClick: (Book) -> Unit
 ) {
-    Column (
+    Row (
         modifier = modifier
             .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(30.dp),
+            .clickable {
+                onBookClick(book)
+            },
+        horizontalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        Column {
-            Text(
-                text = "Every book you want",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = "Right here",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-            )
-        }
-
-        Column {
-            Text(
-                text = "Categories",
-                style = MaterialTheme.typography.headlineSmall,
-            )
-            LazyRow {
-                for((_, bookList) in books) {
-                    items(
-                        items = bookList,
-                        key = { book -> book.id }
-                    ) { book ->
-                        AssistChip(
-                            onClick = { /*TODO*/ },
-                            label = { Text(book.volumeInfo.categories?.get(0) ?: "") },
-                            modifier = Modifier
-                                .padding(8.dp)
-                        )
-                    }
-                }
-            }
-        }
-
-        for((category, bookList) in books) {
-            Column {
-                Text(
-                    text = category,
-                    style = MaterialTheme.typography.headlineSmall,
-                )
-                LazyRow {
-                    items(
-                        items = bookList,
-                        key = { book -> book.id }
-                    ) { book ->
-                        BookCard(
-                            book = book,
-                            onBookClick = onBookClick
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun BookCard(
-    book: Book,
-    onBookClick: (Book) -> Unit,
-) {
-    Card (
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
-        shape = MaterialTheme.shapes.medium,
-        modifier = Modifier
-            .padding(8.dp)
-            .width(110.dp)
-            .aspectRatio(.7f),
-        onClick = {
-            onBookClick(book)
-        }
-    ) {
-        AsyncImage(
-            model = ImageRequest.Builder(context = LocalContext.current)
-                .data(book.volumeInfo.imageLinks?.thumbnail?.replace("http", "https"))
-                .crossfade(true)
-                .build(),
-            contentDescription = book.volumeInfo.title,
-            error = painterResource(R.drawable.ic_broken_image),
-            placeholder = painterResource(R.drawable.loading_img),
-            contentScale = ContentScale.Crop,
+        Card(
+            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
+            shape = MaterialTheme.shapes.medium,
             modifier = Modifier
-                .fillMaxSize()
-                .clip(MaterialTheme.shapes.medium)
-        )
-    }
-}
+                .width(100.dp)
+        ) {
+            AsyncImage(
+                model = ImageRequest.Builder(context = LocalContext.current)
+                    .data(book.volumeInfo.imageLinks?.thumbnail?.replace("http", "https"))
+                    .crossfade(true)
+                    .build(),
+                contentDescription = book.volumeInfo.title,
+                error = painterResource(R.drawable.ic_broken_image),
+                placeholder = painterResource(R.drawable.loading_img),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(MaterialTheme.shapes.medium)
+            )
+        }
+        Column (
+            verticalArrangement = Arrangement.spacedBy(3.dp)
+        ) {
+            Text(
+                text = book.volumeInfo.title ?: "",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
 
-@Preview
-@Composable
-fun BookCardPreview() {
-    BookAppTheme {
-        BookCard(
-            book = MockData.BookMockData(),
-            onBookClick = {}
-        )
+            Text(
+                text = book.volumeInfo.authors?.get(0) ?: "",
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier
+            )
+
+            if(book.saleInfo.isEbook == true) {
+                Text(
+                    text = "Ebook",
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier
+                )
+            }
+            Text(
+                text = "${book.saleInfo.listPrice?.currencyCode ?: ""} ${book.saleInfo.listPrice?.amount ?: ""}",
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier
+            )
+        }
     }
 }

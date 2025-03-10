@@ -36,7 +36,7 @@ data class VolumeInfo (
     val description: String? = "",
     val industryIdentifiers: List<IndustryIdentifier>? = listOf(),
     val pageCount: Int? = 0,
-    val averageRating: Int? = 0,
+    val averageRating: Double? = 0.0,
     val ratingsCount: Int? = 0,
     val categories: List<String>? = null,
     val imageLinks: ImageLinks? = null,
