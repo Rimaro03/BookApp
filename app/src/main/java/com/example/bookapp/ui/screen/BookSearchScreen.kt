@@ -22,7 +22,9 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -51,7 +53,7 @@ import coil.request.ImageRequest
 import com.example.bookapp.R
 import com.example.bookapp.models.Book
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun BookSearchScreenAppBar(
     canNavigateBack: Boolean,
@@ -67,16 +69,8 @@ fun BookSearchScreenAppBar(
             .fillMaxWidth()
             .semantics { isTraversalGroup = true }
     ) {
-        if (canNavigateBack) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = null,
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .clickable { navigateBack() }
-            )
-        }
         SearchBar(
+            modifier = modifier.align(Alignment.TopCenter),
             inputField = {
                 SearchBarDefaults.InputField(
                     state = textFieldState,
@@ -87,7 +81,19 @@ fun BookSearchScreenAppBar(
                     expanded = expanded,
                     onExpandedChange = { expanded = it },
                     placeholder = { Text("Hinted search text") },
-                    trailingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    trailingIcon = {
+                        Icon(Icons.Default.Search, contentDescription = null)
+                    },
+                    leadingIcon = {
+                        if (canNavigateBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .clickable { navigateBack() }
+                            )
+                        }
+                    }
                 )
             },
             expanded = expanded,

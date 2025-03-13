@@ -79,8 +79,8 @@ fun BookApp() {
         composable(AppScreen.BookSearch.name) {
             BookSearchScreen(
                 bookSearchUiState = bookSearchUiState,
-                canNavigateBack = false,
-                navigateBack = { /*TODO*/ },
+                canNavigateBack = navController.previousBackStackEntry != null,
+                navigateBack = { navController.navigateUp() },
                 onSearch = { query ->
                     bookViewModel.searchBooks(query)
                     navController.navigate(AppScreen.BookSearch.name)
