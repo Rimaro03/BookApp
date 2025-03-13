@@ -1,5 +1,4 @@
 # BookApp
-## Description
 Android practice application made in Kotlin. The Book App uses Google's Book API to retrieve book datas. It has three screens: home, book search, book detail. The app purpose is to practice Kotlin coroutines usage, retriving datas from the internet with android and displaying images asynchronously.
 ## Usage
 1. Clone the repo
