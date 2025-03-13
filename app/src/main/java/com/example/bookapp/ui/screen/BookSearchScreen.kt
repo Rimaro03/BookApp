@@ -53,7 +53,7 @@ import coil.request.ImageRequest
 import com.example.bookapp.R
 import com.example.bookapp.models.Book
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookSearchScreenAppBar(
     canNavigateBack: Boolean,

@@ -68,6 +68,12 @@ fun BookApp() {
             BookScreen(
                 bookUiState = bookDetailUiState,
                 retryAction = bookViewModel::getVolumeList,
+                canNavigateBack = navController.previousBackStackEntry != null,
+                navigateBack = { navController.navigateUp() },
+                onSearch = { query ->
+                    bookViewModel.searchBooks(query)
+                    navController.navigate(AppScreen.BookSearch.name)
+                },
                 sampleButtonAction = { link ->
                     openBrowser(context, link = link)
                 },

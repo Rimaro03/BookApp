@@ -2,6 +2,7 @@ package com.example.bookapp.ui.screen
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -13,16 +14,28 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
@@ -40,26 +53,119 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.bookapp.R
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.isTraversalGroup
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import com.example.bookapp.models.Book
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun BookScreenAppBar(
+    canNavigateBack: Boolean,
+    navigateBack: () -> Unit = {},
+    onSearch: (String) -> Unit,
+    modifier: Modifier = Modifier
+){
+    val textFieldState = rememberTextFieldState()
+    var expanded by rememberSaveable { mutableStateOf(false) }
+
+    Box (
+        modifier = modifier
+            .fillMaxWidth()
+            .semantics { isTraversalGroup = true }
+    ) {
+        SearchBar(
+            modifier = modifier.align(Alignment.TopCenter),
+            inputField = {
+                SearchBarDefaults.InputField(
+                    state = textFieldState,
+                    onSearch = {
+                        expanded = false
+                        onSearch(textFieldState.text.toString())
+                    },
+                    expanded = expanded,
+                    onExpandedChange = { expanded = it },
+                    placeholder = { Text("Hinted search text") },
+                    trailingIcon = {
+                        Icon(Icons.Default.Search, contentDescription = null)
+                    },
+                    leadingIcon = {
+                        if (canNavigateBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .clickable { navigateBack() }
+                            )
+                        }
+                    }
+                )
+            },
+            expanded = expanded,
+            onExpandedChange = { expanded = it }
+        ) {
+            Column(
+                Modifier.verticalScroll(rememberScrollState())
+            ) {
+                for (category in listOf("Fiction", "History", "Lotr")){
+                    ListItem(
+                        headlineContent = { Text(category) },
+                        leadingContent = {
+                            Icon(
+                                Icons.Filled.History,
+                                contentDescription = null
+                            )
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        modifier = Modifier
+                            .clickable {
+                                textFieldState.setTextAndPlaceCursorAtEnd(category)
+                                expanded = false
+                                onSearch(category)
+                            }
+                            .fillMaxWidth()
+                    )
+                }
+            }
+        }
+    }
+}
 
 @Composable
 fun BookScreen (
     bookUiState: BookDetailUiState,
     retryAction: () -> Unit,
+    canNavigateBack: Boolean,
+    navigateBack: () -> Unit = {},
+    onSearch: (String) -> Unit,
     sampleButtonAction: (String) -> Unit,
     buyButtonAction: (String) -> Unit
 ) {
-    when (bookUiState) {
-        is BookDetailUiState.Loading -> LoadinScreen()
-        is BookDetailUiState.Error -> ErrorScreen(retryAction =  retryAction)
-        is BookDetailUiState.Success -> BookDetail(
-            book = bookUiState.book,
-            bookDetail = bookUiState.bookDetail,
-            sampleButtonAction = sampleButtonAction,
-            buyButtonAction = buyButtonAction
-        )
+    Scaffold (
+        modifier = Modifier,
+        topBar = {
+            BookScreenAppBar(
+                canNavigateBack = canNavigateBack,
+                navigateBack = navigateBack,
+                onSearch = onSearch,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    ) { innerPadding ->
+        when (bookUiState) {
+            is BookDetailUiState.Loading -> LoadinScreen()
+            is BookDetailUiState.Error -> ErrorScreen(retryAction = retryAction)
+            is BookDetailUiState.Success -> BookDetail(
+                book = bookUiState.book,
+                bookDetail = bookUiState.bookDetail,
+                sampleButtonAction = sampleButtonAction,
+                buyButtonAction = buyButtonAction,
+                modifier = Modifier.padding(innerPadding)
+            )
+        }
     }
 }
 
@@ -250,7 +356,7 @@ fun BookDetail(
                     text = book.volumeInfo.description,
                     maxLines = if (descriptionExpanded) Int.MAX_VALUE else MAX_DESCRIPTION_LINES,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = modifier
+                    modifier = Modifier
                         .clickable {
                             descriptionExpanded = !descriptionExpanded
                         }
@@ -270,7 +376,7 @@ fun BookDetail(
                         label = {
                             Text(
                                text = category,
-                                modifier = modifier.padding(5.dp)
+                                modifier = Modifier.padding(5.dp)
                             )},
                         modifier = Modifier
                             .padding(
