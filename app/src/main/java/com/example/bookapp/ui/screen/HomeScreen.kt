@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -136,6 +137,7 @@ fun HomeScreen (
                 BookList(
                     books = volumeListUiState.books,
                     onBookClick = onBookClick,
+                    onSearch =  onSearch,
                     modifier = Modifier.padding(innerPadding)
                 )
             }
@@ -148,7 +150,15 @@ fun BookList(
     books: Map<String, List<Book>>,
     modifier: Modifier = Modifier,
     onBookClick: (Book) -> Unit,
+    onSearch: (String) -> Unit
 ) {
+    var categories by remember { mutableStateOf(setOf<String>()) }
+    for((_, bookList) in books) {
+        for (book in bookList){
+            categories = categories.toMutableSet().apply { addAll(book.volumeInfo.categories ?: emptyList()) }
+        }
+    }
+
     Column (
         modifier = modifier
             .fillMaxWidth()
@@ -156,18 +166,6 @@ fun BookList(
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(30.dp),
     ) {
-        Column {
-            Text(
-                text = "Every book you want",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = "Right here",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-            )
-        }
 
         Column {
             Text(
@@ -175,18 +173,18 @@ fun BookList(
                 style = MaterialTheme.typography.headlineSmall,
             )
             LazyRow {
-                for((_, bookList) in books) {
-                    items(
-                        items = bookList,
-                        key = { book -> book.id }
-                    ) { book ->
-                        AssistChip(
-                            onClick = { /*TODO*/ },
-                            label = { Text(book.volumeInfo.categories?.get(0) ?: "") },
-                            modifier = Modifier
-                                .padding(8.dp)
-                        )
-                    }
+                items(
+                    items = categories.toList(),
+                    key = { category -> category }
+                ) { category ->
+                    AssistChip(
+                        onClick = {
+                            onSearch(category)
+                        },
+                        label = { Text(category) },
+                        modifier = Modifier
+                            .padding(8.dp)
+                    )
                 }
             }
         }

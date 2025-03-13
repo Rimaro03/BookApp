@@ -163,7 +163,8 @@ fun BookScreen (
                 bookDetail = bookUiState.bookDetail,
                 sampleButtonAction = sampleButtonAction,
                 buyButtonAction = buyButtonAction,
-                modifier = Modifier.padding(innerPadding)
+                modifier = Modifier.padding(innerPadding),
+                onSearch = onSearch
             )
         }
     }
@@ -175,7 +176,8 @@ fun BookDetail(
     bookDetail: Book,
     modifier: Modifier = Modifier,
     sampleButtonAction: (String) -> Unit,
-    buyButtonAction: (String) -> Unit
+    buyButtonAction: (String) -> Unit,
+    onSearch: (String) -> Unit
 ) {
     var descriptionExpanded by remember { mutableStateOf(false) }
     val MAX_DESCRIPTION_LINES = 5
@@ -372,7 +374,9 @@ fun BookDetail(
                     key = { category -> category }
                 ) { category ->
                     AssistChip (
-                        onClick = {  },
+                        onClick = {
+                            onSearch(category)
+                        },
                         label = {
                             Text(
                                text = category,

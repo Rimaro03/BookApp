@@ -43,7 +43,7 @@ class BookViewModel (private val bookRepository: BookRepository): ViewModel() {
     var volumeListUiState: VolumeListUiState by mutableStateOf(VolumeListUiState.Loading)
     var bookDetailUiState: BookDetailUiState by mutableStateOf(BookDetailUiState.Loading)
     var bookSearchUiState: BookSearchUiState by mutableStateOf(BookSearchUiState.Loading)
-    val defaultQueries = listOf("Fiction", "History", "Lotr")
+    val defaultQueries = listOf("Fiction", "History", "Tolkien")
 
     init {
         getVolumeList()

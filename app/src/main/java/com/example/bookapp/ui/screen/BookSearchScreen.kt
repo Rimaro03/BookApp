@@ -47,6 +47,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -221,15 +222,26 @@ fun BookSearchCard (
         ) {
             Text(
                 text = book.volumeInfo.title ?: "",
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
 
-            Text(
-                text = book.volumeInfo.authors?.get(0) ?: "",
-                style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier
-            )
+            if(book.volumeInfo.authors.isNullOrEmpty()) {
+                Text(
+                    text = "No Author",
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier
+                )
+            }
+            else {
+                Text(
+                    text = book.volumeInfo.authors?.get(0) ?: "",
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier
+                )
+            }
 
             if(book.saleInfo.isEbook == true) {
                 Text(
