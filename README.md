@@ -6,7 +6,11 @@ Android practice application made in Kotlin. The Book App uses Google's Book API
 git clone https://github.com/Rimaro03/BookApp
 ```
 2. Open the project in Android Studio
-3. Execute the app in your device or an android emulator
+3. In the project root, create a file called `apikeys.properties` and fill the google books api keys field as shown:
+``` properties
+API_KEY="<YOUR_API_KEY>"
+```
+4. Execute the app in your device or an android emulator
 ## Photos
 
 
